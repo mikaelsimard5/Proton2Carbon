@@ -1,8 +1,8 @@
 #!/bin/bash
 ### Job Name
-#PBS -N Trainer_DigpatAI
+#PBS -N Trainer_Proton2Carbon
 ### Project code
-#PBS -A DigitalAI
+#PBS -A Proton2Carbon
 ### Maximum time this job can run before being killed (here, 1 day)
 #PBS -l walltime=10:00:00:00
 ### Resource Request (must contain cpucore, memory, and gpu (even if requested amount is zero)
@@ -13,27 +13,8 @@
 ##PBS -l outputMode=stdout_only
 ##PBS -l outputMode=stderr_only
 
-#### ENVIRONMENT VARIABLES BELOW AUTOMATICALLY ADDED FROM QSUB ####
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/dgs2/apps/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/dgs2/apps/anaconda3/etc/profile.d/conda.sh" ]; then
-	. "/home/dgs2/apps/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/dgs2/apps/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-conda activate DigitalPathologyAI
-export PYTHONPATH=$PYTHONPATH:/home/dgs2/Software/P2C
-export LS_COLORS="$LS_COLORS:ow=1;34:tw=1;34:"
-#### ENVIRONMENT VARIABLES ABOVE AUTOMATICALLY ADDED FROM QSUB ####
 
-### Run your job here
-#printenv
+. /home/dgs1/Software/Proton2Carbon/proton2carbon/bin/activate
+export PYTHONPATH=$PYTHONPATH:/home/dgs1/Software/Proton2Carbon
+export LS_COLORS="$LS_COLORS:ow=1;34:tw=1;34:"
 python Trainer_P2C.py config_trainer_p2c.ini
-#stress --cpu 1 -t 60

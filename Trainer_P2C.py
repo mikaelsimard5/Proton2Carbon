@@ -8,7 +8,7 @@ import toml
 import torch
 import sys
 
-from Models import UNets, Pix2Pix
+from _Models import UNets, Pix2Pix
 from Dataloader.Dataloader_P2C import load_image_dataset, DataModule
 
 def load_config(config_file):
