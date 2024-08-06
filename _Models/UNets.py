@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from monai.networks.nets import UNet, BasicUNet, BasicUNetPlusPlus
 
 from Utils import Loss_Functions
+from Utils.Initialisation import init_weights
 
 
 class Unet(L.LightningModule):
@@ -34,7 +35,9 @@ class Unet(L.LightningModule):
                                 in_channels=1,
                                 out_channels=1,
                                 act=config['ADVANCEDMODEL']['Activation'],
-                                dropout=config['ADVANCEDMODEL']['Drop_Rate'])
+                                dropout=config['ADVANCEDMODEL']['Drop_Rate'],
+                                features=self.config['ADVANCEDMODEL']['Unet_features'])
+            init_weights(self.model, init_type = "xavier")
         else:
             raise ValueError(f"Unknown model:{config['ADVANCEDMODEL']['Name']}.")
 
@@ -45,7 +48,7 @@ class Unet(L.LightningModule):
 
         if self.config['ADVANCEDMODEL']['Name'] == "BasicUNet":
             return self.model(x)
-        elif self.config['ADVANCEDMODEL']['Name'] == "BasicUnetPlusPlus":
+        elif self.conI tfig['ADVANCEDMODEL']['Name'] == "BasicUnetPlusPlus":
             x = self.model(x)
             if len(x)>1:
                 raise ValueError('Not sure why this is len > 1.')

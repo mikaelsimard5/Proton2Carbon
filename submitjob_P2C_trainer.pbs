@@ -6,7 +6,7 @@
 ### Maximum time this job can run before being killed (here, 1 day)
 #PBS -l walltime=10:00:00:00
 ### Resource Request (must contain cpucore, memory, and gpu (even if requested amount is zero)
-#PBS -l cpucore=10:memory=50gb:gpu=1
+#PBS -l cpucore=10:memory=50gb:gpu=4
 ### Output Options (default is stdout_and_stderr)
 #PBS -l outputMode=stdout_and_stderr
 ##PBS -l outputMode=no_output
@@ -17,4 +17,4 @@
 . /home/dgs1/Software/Proton2Carbon/proton2carbon/bin/activate
 export PYTHONPATH=$PYTHONPATH:/home/dgs1/Software/Proton2Carbon
 export LS_COLORS="$LS_COLORS:ow=1;34:tw=1;34:"
-python Trainer_P2C.py config_trainer_p2c.ini
+python Trainer_P2C.py config_trainer_p2c_unet.ini

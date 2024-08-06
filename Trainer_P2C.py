@@ -15,7 +15,7 @@ def load_config(config_file):
     return toml.load(config_file)
 
 def get_transforms(): # transforms made on CPU - should just be image formatting.
-    # WARNING - THIS DOES NOT SCALE THE IMAGES FROM 0 TO 1 !!!
+    # [!] no normalisation from 0 to 1 is achieved here.
     train_transform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=False)])
     val_transform = train_transform
     return train_transform, val_transform
@@ -32,14 +32,18 @@ def get_callbacks(config, model_name):
         mode=config['CHECKPOINT']['Mode'])
     return [lr_monitor, checkpoint_callback]    
 
+def export_config(config, logger):
+    os.makedirs(logger.log_dir, exist_ok=True)
+    with open(logger.log_dir + "/Config.ini", "w+") as toml_file:        
+        toml.dump(config, toml_file) 
+
 if __name__ == "__main__":
 
     # Load configuration
     config = load_config(sys.argv[1])
 
     config['ADVANCEDMODEL']['n_gpus'] = config['ADVANCEDMODEL']['n_gpus']
-    print(f"Available GPUs: {torch.cuda.device_count()}")
-    print(f"{config['ADVANCEDMODEL']['n_gpus']} GPUs are used for training")
+    print(f"Available GPUs: {torch.cuda.device_count()}, {config['ADVANCEDMODEL']['n_gpus']} used to train.")
 
     # Base setup
     L.seed_everything(config['ADVANCEDMODEL']['Random_Seed'], workers=True)
@@ -48,6 +52,7 @@ if __name__ == "__main__":
     # Create logger, callbacks and transforms
     model_name = config['ADVANCEDMODEL']['Name']
     logger = get_logger(config, model_name)
+    export_config(config, logger)
     callbacks = get_callbacks(config, model_name)
     train_transform, val_transform = get_transforms()
 
@@ -56,17 +61,19 @@ if __name__ == "__main__":
         model = Pix2Pix.Pix2PixLightning(config)
     elif config['ADVANCEDMODEL']['Name'] == "BasicUnetPlusPlus":
         model = UNets.Unet(config)
+    else:
+        raise ValueError(f"Invalid model name '{config['ADVANCEDMODEL']['Name']}'.")
 
     # Create dataset
     image_dataset = load_image_dataset(config)
-
-    #image_dataset = image_dataset[0:100000]
+    #image_dataset = image_dataset[:70000]
 
     data = DataModule(image_dataset, train_transform=train_transform, val_transform=val_transform, config=config)
 
     # Create trainer
     trainer = L.Trainer(devices=config['ADVANCEDMODEL']['n_gpus'],
                         accelerator="gpu",
+                        strategy='ddp_find_unused_parameters_true',
                         max_epochs=config['ADVANCEDMODEL']['Max_Epochs'],
                         precision=config['BASEMODEL']['Precision'],
                         callbacks=callbacks,
@@ -76,13 +83,7 @@ if __name__ == "__main__":
                         sync_batchnorm=True)
     
     trainer.fit(model, datamodule=data)
-
-    with open(logger.log_dir + "/Config.ini", "w+") as toml_file:
-        toml.dump(config, toml_file)
-        toml_file.write("Train transform = \n")
-        toml_file.write(str(train_transform))
-        toml_file.write("Val/Test transform = \n")
-        toml_file.write(str(val_transform))    
+  
 
 
 
