@@ -1,9 +1,34 @@
+import kornia as K
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import random
 import torch 
 import torch.nn as nn
+
+class GradientWeightedMSELoss(nn.Module):
+    # Uses the gradient map as a weight. 
+    def __init__(self):
+        super(GradientWeightedMSELoss, self).__init__()
+        self.laplacian_kernel_size = 3 # 3x3 around the pixel for derivative
+
+    def forward(self, prediction, target):
+        # prediction and target are size [B, C, H, W].
+
+        weights = self.get_weights(target) # size is [B, H, W]
+
+        # uncomment if you want to debug
+        #self.save_subplots(target, weights, folder_path="/home/dgs1/Desktop/example_images_P2C/")
+        
+        return torch.mean(weights * (prediction - target) ** 2)        
+    
+    def get_weights(self, target):
+
+        grad = torch.abs(K.filters.laplacian(target, self.laplacian_kernel_size, normalized=True))
+
+        return grad
+
+
 
 class WeightedMSELoss(nn.Module):
     def __init__(self):
@@ -15,7 +40,7 @@ class WeightedMSELoss(nn.Module):
         weights = self.get_weights(target) # size is [B, H, W]
 
         # uncomment if you want to debug
-        # self.save_subplots(target, weights, folder_path="/home/dgs2/Desktop/example_images_P2C/")
+        #self.save_subplots(target, weights, folder_path="/home/dgs1/Desktop/example_images_P2C/")
 
         return torch.mean(weights * (prediction - target) ** 2)        
 
